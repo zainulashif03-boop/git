@@ -1,156 +1,489 @@
-// ==============================
-// HOTEL BOOKING JAVASCRIPT
-// ==============================
 
-const modal = document.getElementById("bookingModal");
-const hotelName = document.getElementById("hotelName");
+// ==========================================
+// PREMIUM KSRTC BUS BOOKING JAVASCRIPT
+// ==========================================
 
 
-// Open booking modal
-function openBooking(hotel = "LUXORA Premium Hotel") {
+// Global booking information
 
-    hotelName.value = hotel;
+let selectedBus = "";
+let selectedPrice = 0;
+let selectedSeat = "";
 
-    modal.classList.add("show");
+let tripType = "oneway";
 
-    document.body.style.overflow = "hidden";
+
+// ==========================================
+// SET TRIP TYPE
+// ==========================================
+
+function setTripType(type, button) {
+
+    tripType = type;
+
+    document
+        .querySelectorAll(".trip-tabs button")
+        .forEach(btn => {
+            btn.classList.remove("active");
+        });
+
+    button.classList.add("active");
+
 }
 
 
-// Close booking modal
-function closeBooking() {
+// ==========================================
+// SWAP CITIES
+// ==========================================
 
-    modal.classList.remove("show");
+function swapCities() {
 
-    document.body.style.overflow = "auto";
+    const from = document.getElementById("from");
+    const to = document.getElementById("to");
+
+    const temp = from.value;
+
+    from.value = to.value;
+    to.value = temp;
+
 }
 
 
-// Close when clicking outside modal
-modal.addEventListener("click", function(event) {
+// ==========================================
+// SEARCH BUSES
+// ==========================================
 
-    if (event.target === modal) {
-        closeBooking();
-    }
+function searchBuses() {
 
-});
+    const from =
+        document.getElementById("from").value;
 
+    const to =
+        document.getElementById("to").value;
 
-// Favorite button
-function toggleFavorite(button) {
+    const date =
+        document.getElementById("travelDate").value;
 
-    button.classList.toggle("active");
-
-    if (button.classList.contains("active")) {
-        button.innerHTML = "♥";
-    } else {
-        button.innerHTML = "♡";
-    }
-}
+    const passengers =
+        document.getElementById("passengers").value;
 
 
-// Hotel search
-function searchHotels() {
+    if (!from || !to) {
 
-    const destination =
-        document.getElementById("destination").value.trim();
-
-    const checkin =
-        document.getElementById("checkin").value;
-
-    const checkout =
-        document.getElementById("checkout").value;
-
-    const guests =
-        document.getElementById("guests").value;
-
-
-    if (!destination) {
-
-        alert("Please enter a destination.");
+        alert(
+            "Please select your departure and destination."
+        );
 
         return;
     }
 
 
-    if (!checkin || !checkout) {
+    if (from === to) {
 
-        alert("Please select your check-in and check-out dates.");
+        alert(
+            "Departure and destination cannot be the same."
+        );
 
         return;
     }
 
 
-    if (new Date(checkout) <= new Date(checkin)) {
+    if (!date) {
 
-        alert("Check-out must be after check-in.");
+        alert(
+            "Please select your travel date."
+        );
 
         return;
     }
 
 
     alert(
-        `Searching luxury hotels in ${destination}\n` +
-        `${guests} guest(s)\n` +
-        `${checkin} → ${checkout}`
+        `Searching buses\n\n` +
+        `${from} → ${to}\n` +
+        `Date: ${date}\n` +
+        `Passengers: ${passengers}`
     );
 
+
     document
-        .getElementById("hotels")
+        .getElementById("results")
         .scrollIntoView({
             behavior: "smooth"
         });
+
 }
 
 
-// Booking form
-document
-    .getElementById("bookingForm")
-    .addEventListener("submit", function(event) {
+// ==========================================
+// QUICK ROUTE SELECTION
+// ==========================================
 
-        event.preventDefault();
+function selectRoute(from, to) {
 
-        const name =
-            document.getElementById("fullName").value;
+    document.getElementById("from").value = from;
 
-        const email =
-            document.getElementById("email").value;
+    document.getElementById("to").value = to;
 
-        const checkin =
-            document.getElementById("modalCheckin").value;
+    document
+        .querySelector(".search-card")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
 
-        const checkout =
-            document.getElementById("modalCheckout").value;
+}
 
 
-        if (new Date(checkout) <= new Date(checkin)) {
+// ==========================================
+// OPEN SEAT SELECTION
+// ==========================================
 
-            alert("Check-out must be after check-in.");
+function openSeats(bus, price) {
 
-            return;
+    selectedBus = bus;
+
+    selectedPrice = price;
+
+    selectedSeat = "";
+
+
+    document.getElementById("selectedBus")
+        .textContent = bus;
+
+    document.getElementById("seatNumber")
+        .textContent = "None";
+
+    document.getElementById("seatPrice")
+        .textContent = "₹0";
+
+
+    createSeats();
+
+
+    openModal("seatModal");
+
+}
+
+
+// ==========================================
+// CREATE BUS SEATS
+// ==========================================
+
+function createSeats() {
+
+    const container =
+        document.getElementById("seatContainer");
+
+    container.innerHTML = "";
+
+
+    const occupiedSeats = [
+        3,
+        7,
+        11,
+        15,
+        20,
+        23
+    ];
+
+
+    for (let i = 1; i <= 24; i++) {
+
+        const seat =
+            document.createElement("button");
+
+
+        seat.className = "seat";
+
+        seat.textContent = i;
+
+        seat.dataset.seat = i;
+
+
+        if (occupiedSeats.includes(i)) {
+
+            seat.classList.add("occupied");
+
+            seat.disabled = true;
+
+        } else {
+
+            seat.addEventListener(
+                "click",
+                function() {
+
+                    selectSeat(this);
+
+                }
+            );
+
         }
 
 
+        container.appendChild(seat);
+
+    }
+
+}
+
+
+// ==========================================
+// SELECT SEAT
+// ==========================================
+
+function selectSeat(button) {
+
+    document
+        .querySelectorAll(".seat")
+        .forEach(seat => {
+
+            seat.classList.remove("selected");
+
+        });
+
+
+    button.classList.add("selected");
+
+
+    selectedSeat =
+        button.dataset.seat;
+
+
+    document.getElementById("seatNumber")
+        .textContent =
+        "Seat " + selectedSeat;
+
+
+    document.getElementById("seatPrice")
+        .textContent =
+        "₹" + selectedPrice;
+
+}
+
+
+// ==========================================
+// CONTINUE BOOKING
+// ==========================================
+
+function continueBooking() {
+
+    if (!selectedSeat) {
+
         alert(
-            `Thank you, ${name}!\n\n` +
-            `Your reservation request for ${hotelName.value} ` +
-            `has been received.\n\n` +
-            `Confirmation will be sent to ${email}.`
+            "Please select a seat before continuing."
         );
 
+        return;
+    }
 
-        this.reset();
 
-        closeBooking();
+    closeModal("seatModal");
+
+
+    document.getElementById("finalBus")
+        .textContent = selectedBus;
+
+
+    document.getElementById("finalSeat")
+        .textContent =
+        "Seat " + selectedSeat;
+
+
+    document.getElementById("finalPrice")
+        .textContent =
+        "₹" + selectedPrice;
+
+
+    openModal("passengerModal");
+
+}
+
+
+// ==========================================
+// PASSENGER FORM
+// ==========================================
+
+document
+    .getElementById("passengerForm")
+    .addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+
+            const name =
+                document.getElementById(
+                    "passengerName"
+                ).value.trim();
+
+
+            const mobile =
+                document.getElementById(
+                    "mobile"
+                ).value.trim();
+
+
+            const email =
+                document.getElementById(
+                    "email"
+                ).value.trim();
+
+
+            if (name.length < 3) {
+
+                alert(
+                    "Please enter a valid name."
+                );
+
+                return;
+            }
+
+
+            if (!/^[0-9]{10}$/.test(mobile)) {
+
+                alert(
+                    "Please enter a valid 10-digit mobile number."
+                );
+
+                return;
+            }
+
+
+            if (!email.includes("@")) {
+
+                alert(
+                    "Please enter a valid email address."
+                );
+
+                return;
+            }
+
+
+            const bookingId =
+                "KS" +
+                Math.floor(
+                    100000 +
+                    Math.random() * 900000
+                );
+
+
+            alert(
+                `Booking Confirmed!\n\n` +
+
+                `Booking ID: ${bookingId}\n` +
+
+                `Passenger: ${name}\n` +
+
+                `Bus: ${selectedBus}\n` +
+
+                `Seat: ${selectedSeat}\n` +
+
+                `Amount: ₹${selectedPrice}\n\n` +
+
+                `A confirmation would be sent to ${email}.`
+            );
+
+
+            closeModal("passengerModal");
+
+
+            this.reset();
+
+        }
+    );
+
+
+// ==========================================
+// LOGIN
+// ==========================================
+
+function openLogin() {
+
+    openModal("loginModal");
+
+}
+
+
+document
+    .getElementById("loginForm")
+    .addEventListener(
+        "submit",
+        function(event) {
+
+            event.preventDefault();
+
+            alert(
+                "Demo login successful!"
+            );
+
+            closeModal("loginModal");
+
+        }
+    );
+
+
+// ==========================================
+// MODAL FUNCTIONS
+// ==========================================
+
+function openModal(id) {
+
+    document
+        .getElementById(id)
+        .classList.add("show");
+
+    document.body.style.overflow = "hidden";
+
+}
+
+
+function closeModal(id) {
+
+    document
+        .getElementById(id)
+        .classList.remove("show");
+
+    document.body.style.overflow = "auto";
+
+}
+
+
+// Close modal by clicking outside
+
+document
+    .querySelectorAll(".modal")
+    .forEach(modal => {
+
+        modal.addEventListener(
+            "click",
+            function(event) {
+
+                if (event.target === modal) {
+
+                    closeModal(modal.id);
+
+                }
+
+            }
+        );
+
     });
 
 
-// Mobile menu
+// ==========================================
+// MOBILE MENU
+// ==========================================
+
 function toggleMenu() {
 
-    const nav = document.querySelector(".navbar nav");
+    const nav =
+        document.getElementById("mainNav");
 
-    if (nav.style.display === "flex") {
+
+    if (
+        nav.style.display === "flex"
+    ) {
 
         nav.style.display = "none";
 
@@ -159,41 +492,51 @@ function toggleMenu() {
         nav.style.display = "flex";
 
         nav.style.position = "absolute";
-        nav.style.top = "90px";
+
+        nav.style.top = "82px";
+
         nav.style.left = "0";
+
         nav.style.width = "100%";
+
         nav.style.padding = "25px";
-        nav.style.background = "#111";
+
+        nav.style.background = "#6e1015";
 
         nav.style.flexDirection = "column";
+
         nav.style.gap = "20px";
+
     }
+
 }
 
 
-// Set minimum dates
-const today = new Date().toISOString().split("T")[0];
+// ==========================================
+// SCROLL TO SEARCH
+// ==========================================
 
-document.getElementById("checkin").min = today;
-document.getElementById("checkout").min = today;
-document.getElementById("modalCheckin").min = today;
-document.getElementById("modalCheckout").min = today;
+function scrollToSearch() {
+
+    document
+        .querySelector(".search-card")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
+
+}
 
 
-// Automatically update checkout minimum date
+// ==========================================
+// SET TODAY AS MINIMUM DATE
+// ==========================================
+
+const today =
+    new Date()
+        .toISOString()
+        .split("T")[0];
+
+
 document
-    .getElementById("checkin")
-    .addEventListener("change", function() {
-
-        document.getElementById("checkout").min = this.value;
-
-    });
-
-
-document
-    .getElementById("modalCheckin")
-    .addEventListener("change", function() {
-
-        document.getElementById("modalCheckout").min = this.value;
-
-    });
+    .getElementById("travelDate")
+    .min = today;
